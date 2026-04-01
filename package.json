@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "facilitator": "tsx src/facilitator/index.ts"
+    "facilitator": "tsx src/facilitator/index.ts",
+    "server": "tsx src/server/index.ts",
+    "client": "tsx src/client/index.ts"
   },
   "author": "",
   "license": "ISC",

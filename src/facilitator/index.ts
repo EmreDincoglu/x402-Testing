@@ -19,14 +19,14 @@ dotenv.config();
 const PORT = process.env.PORT || "4022";
 
 // Validate required environment variables
-if (!process.env.EVM_PRIVATE_KEY) {
-  console.error("❌ EVM_PRIVATE_KEY environment variable is required");
+if (!process.env.FACILITATOR_PRIVATE_KEY) {
+  console.error("❌ FACILITATOR_PRIVATE_KEY environment variable is required");
   process.exit(1);
 }
 
 // Initialize the EVM account from private key
 const evmAccount = privateKeyToAccount(
-  process.env.EVM_PRIVATE_KEY as `0x${string}`,
+  process.env.FACILITATOR_PRIVATE_KEY as `0x${string}`,
 );
 console.info(`EVM Facilitator account: ${evmAccount.address}`);
 
@@ -34,7 +34,7 @@ console.info(`EVM Facilitator account: ${evmAccount.address}`);
 const viemClient = createWalletClient({
   account: evmAccount,
   chain: arbitrumSepolia,
-  transport: http(),
+  transport: http("https://sepolia-rollup.arbitrum.io/rpc"),
 }).extend(publicActions);
 
 // Initialize the x402 Facilitator with EVM support

@@ -15,6 +15,7 @@ const fetchWithPayment = wrapFetchWithPayment(fetch, client);
 
 async function main() {
   // Make request - payment is handled automatically
+  // An AI agent would only have to set the endpoint below to buy the resource
   const response = await fetchWithPayment("http://localhost:4021/weather", {
     method: "GET",
   });

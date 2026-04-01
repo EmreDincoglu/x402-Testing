@@ -33,9 +33,10 @@ app.use(
             scheme: "exact",
             // Price is only able to be shown in dollar format if the network your on has a default stablecoin
             // The code making USDC the default for ArbOne and Sep is merged but at time of writing it has not been
-            // Put into an updated NPM version 
+            // Put into an updated NPM package 
+            // This is why the README tells you to edit a file in node_modules
             price: "$0.01",
-            network: "eip155:421614", // Eth Sepolia (can be later replaced with Arb Sepolia)
+            network: "eip155:421614", // Arb Sepolia
             payTo: evmAddress,
           }
         ],
@@ -43,11 +44,14 @@ app.use(
         mimeType: "application/json",
       },
     },
+    // Registers different servers, only ones we will care abt are of course Arb Sepolia and Arb One
     new x402ResourceServer(facilitatorClient)
       .register("eip155:421614", new ExactEvmScheme())
   ),
 );
 
+// This is the response that will be sent to the client once the facilitator has acknowledged that
+// The server was paid
 app.get("/weather", (req, res) => {
   res.send({
     report: {

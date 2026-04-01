@@ -30,7 +30,12 @@ const evmAccount = privateKeyToAccount(
 );
 console.info(`EVM Facilitator account: ${evmAccount.address}`);
 
-// Create a Viem client with both wallet and public capabilities
+/**
+ * Create a Viem client with both wallet and public capabilities
+ * Only the facilitator needs to communicate with the chains it supports for a transaction 
+ * Full protocol below
+ * https://docs.cdp.coinbase.com/x402/core-concepts/how-it-works#payment-flow
+ */
 const viemClient = createWalletClient({
   account: evmAccount,
   chain: arbitrumSepolia,
@@ -59,7 +64,6 @@ const evmSigner = toFacilitatorEvmSigner({
     primaryType: string;
     message: Record<string, unknown>;
     signature: `0x${string}`;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   }) => viemClient.verifyTypedData(args as any),
   writeContract: (args: {
     address: `0x${string}`;
@@ -77,6 +81,10 @@ const evmSigner = toFacilitatorEvmSigner({
     viemClient.waitForTransactionReceipt(args),
 });
 
+/**
+ * All the trailing functions are just for console 
+ * logging the steps of facilitating a transaction 
+ */
 const facilitator = new x402Facilitator()
   .onBeforeVerify(async (context) => {
     console.log("Before verify", context);

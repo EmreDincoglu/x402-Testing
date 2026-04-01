@@ -9,9 +9,6 @@ Most of this is from the example from the x402 repo but with all SVM logic remov
 ### Prerequisites
 
 npm
-  ```sh
-  npm install npm@latest -g
-  ```
 
 ## Installation
 First run
@@ -36,7 +33,9 @@ Which is in the function `getDefaultAsset(network)` in the variable `const stabl
 
 NOTE: (This will not be needed in the future, I have made a PR to x402 that adds the default stablecoin for both Arb networks but the npm package has yet to be updated so for the meantime this is required to replicate what it will be for us in the future)
 
-Then create three new accounts, one for the `Facilitator`, `Server` and the `Client`. Your `Facilitator` will need Eth, and your `Client` Will need USDC [Faucet here](https://faucet.circle.com/) Add their information to the .env file
+Then create three new accounts, one for the `Facilitator`, `Server` and the `Client`. Your `Facilitator` will need Eth, and your `Client` Will need USDC [Faucet here](https://faucet.circle.com/).
+
+ Add their information to the .env file
 
 Then in three separate terminals run the commands in this order
 ```sh
@@ -48,3 +47,5 @@ npm run server
 ```sh
 npm run client
 ```
+
+The terminal that ran the client will then retrieve the information that the server provided. You will also be able to see that the server was paid .01 USD and the client lost .01 USD and neither the server nor the client needed Eth to make this transaction

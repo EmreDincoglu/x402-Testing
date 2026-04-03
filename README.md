@@ -16,23 +16,6 @@ First run
   npm install 
   ```
 
-Then go into the directory
-
-`node_modules/@x402/evm/dist/cjs/exact/server/index.js`
-
-and add the code below 
-```
-"eip155:421614": {
-        address: "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d",
-        name: "USD Coin",
-        version: "2",
-        decimals: 6,
-      },
-```
-Which is in the function `getDefaultAsset(network)` in the variable `const stablecoins`
-
-NOTE: (This will not be needed in the future, I have made a PR to x402 that adds the default stablecoin for both Arb networks but the npm package has yet to be updated so for the meantime this is required to replicate what it will be for us in the future)
-
 Then create three new accounts, one for the `Facilitator`, `Server` and the `Client`. Your `Facilitator` will need Eth, and your `Client` Will need USDC [Faucet here](https://faucet.circle.com/).
 
  Add their information to the .env file

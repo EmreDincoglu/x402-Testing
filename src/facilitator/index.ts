@@ -1,4 +1,10 @@
 import { x402Facilitator } from "@x402/core/facilitator";
+import { 
+  extractDiscoveryInfo, 
+  bazaarResourceServerExtension, 
+  DiscoveredResource
+} from "@x402/extensions/bazaar";
+import { x402ResourceServer } from "@x402/core/server";
 import {
   PaymentPayload,
   PaymentRequirements,
@@ -12,6 +18,7 @@ import express from "express";
 import { createWalletClient, http, publicActions } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { arbitrumSepolia } from "viem/chains";
+import { BazaarCatalog } from "./bazaarCatalog";
 
 dotenv.config();
 
@@ -32,9 +39,8 @@ console.info(`EVM Facilitator account: ${evmAccount.address}`);
 
 /**
  * Create a Viem client with both wallet and public capabilities
- * Only the facilitator needs to communicate with the chains it supports for a transaction 
- * Full protocol below
- * https://docs.cdp.coinbase.com/x402/core-concepts/how-it-works#payment-flow
+ * Only the facilitator needs to communicate with the chain
+ * Protocol: https://docs.cdp.coinbase.com/x402/core-concepts/how-it-works#payment-flow
  */
 const viemClient = createWalletClient({
   account: evmAccount,
@@ -42,8 +48,10 @@ const viemClient = createWalletClient({
   transport: http("https://sepolia-rollup.arbitrum.io/rpc"),
 }).extend(publicActions);
 
-// Initialize the x402 Facilitator with EVM support
+// The bazaar is a visibility layer so sellers can publicly show their endpoints
+const bazaarCatalog = new BazaarCatalog()
 
+// Initialize the x402 Facilitator with EVM support
 const evmSigner = toFacilitatorEvmSigner({
   getCode: (args: { address: `0x${string}` }) => viemClient.getCode(args),
   address: evmAccount.address,
@@ -91,6 +99,17 @@ const facilitator = new x402Facilitator()
   })
   .onAfterVerify(async (context) => {
     console.log("After verify", context);
+    try {
+      const discovered = extractDiscoveryInfo(
+        context.paymentPayload,
+        context.requirements,
+        true,
+      );
+      if (discovered) {
+        discovered
+        bazaarCatalog.add(discovered)
+      }
+    }
   })
   .onVerifyFailure(async (context) => {
     console.log("Verify failure", context);
@@ -110,6 +129,7 @@ facilitator.register(
   "eip155:421614",
   new ExactEvmScheme(evmSigner, { deployERC4337WithEIP6492: true }),
 ); // Arb Sepolia
+
 
 // Initialize Express app
 const app = express();

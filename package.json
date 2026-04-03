@@ -11,11 +11,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@x402/core": "^2.8.0",
-    "@x402/evm": "^2.8.0",
-    "@x402/express": "^2.8.0",
-    "@x402/extensions": "^2.7.0",
-    "@x402/fetch": "^2.7.0",
+    "@x402/core": "^2.9.0",
+    "@x402/evm": "^2.9.0",
+    "@x402/express": "^2.9.0",
+    "@x402/extensions": "^2.9.0",
+    "@x402/fetch": "^2.9.0",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "viem": "^2.47.5"

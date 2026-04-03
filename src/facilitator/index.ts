@@ -1,10 +1,4 @@
 import { x402Facilitator } from "@x402/core/facilitator";
-import { 
-  extractDiscoveryInfo, 
-  bazaarResourceServerExtension, 
-  DiscoveredResource
-} from "@x402/extensions/bazaar";
-import { x402ResourceServer } from "@x402/core/server";
 import {
   PaymentPayload,
   PaymentRequirements,
@@ -19,6 +13,7 @@ import { createWalletClient, http, publicActions } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { arbitrumSepolia } from "viem/chains";
 import { BazaarCatalog } from "./bazaarCatalog";
+import { ok } from "assert";
 
 dotenv.config();
 
@@ -90,35 +85,18 @@ const evmSigner = toFacilitatorEvmSigner({
 });
 
 /**
- * All the trailing functions are just for console 
- * logging the steps of facilitating a transaction 
+ * There are multiple hooks for the lifecycle of a transaction, the facilitator can index a resource
+ * during any step 
  */
 const facilitator = new x402Facilitator()
-  .onBeforeVerify(async (context) => {
-    console.log("Before verify", context);
-  })
   .onAfterVerify(async (context) => {
-    console.log("After verify", context);
-    try {
-      const discovered = extractDiscoveryInfo(
-        context.paymentPayload,
-        context.requirements,
-        true,
-      );
-      if (discovered) {
-        discovered
-        bazaarCatalog.add(discovered)
-      }
-    }
+    bazaarCatalog.extractAndAddDiscoveredResource(
+      context.paymentPayload,
+      context.requirements
+    )
   })
   .onVerifyFailure(async (context) => {
     console.log("Verify failure", context);
-  })
-  .onBeforeSettle(async (context) => {
-    console.log("Before settle", context);
-  })
-  .onAfterSettle(async (context) => {
-    console.log("After settle", context);
   })
   .onSettleFailure(async (context) => {
     console.log("Settle failure", context);
@@ -235,8 +213,34 @@ app.get("/supported", async (req, res) => {
   }
 });
 
+app.get("/discovery/resources", async (req, res) => {
+  try {
+    const resources = bazaarCatalog.getAll();
+    res.json({
+      x402Version: 2,
+      items: resources,
+      pagination: {
+        limit: 100,
+        offset: 0,
+        total: resources.length,
+      },
+    });
+  } catch (error) {
+    console.error("Discovery error:", error);
+    res.status(500).json({
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
+
+app.get("/health", (req, res): void => {
+  res.json({status: "ok"})
+})
+
 // Start the server
 app.listen(parseInt(PORT), () => {
   console.log(`🚀 Facilitator listening on http://localhost:${PORT}`);
   console.log();
 });
+
+

@@ -12,6 +12,8 @@ import express from "express";
 import { createWalletClient, http, publicActions } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { arbitrumSepolia } from "viem/chains";
+import { BazaarCatalog } from "./bazaarCatalog";
+import { ok } from "assert";
 
 dotenv.config();
 
@@ -32,9 +34,8 @@ console.info(`EVM Facilitator account: ${evmAccount.address}`);
 
 /**
  * Create a Viem client with both wallet and public capabilities
- * Only the facilitator needs to communicate with the chains it supports for a transaction 
- * Full protocol below
- * https://docs.cdp.coinbase.com/x402/core-concepts/how-it-works#payment-flow
+ * Only the facilitator needs to communicate with the chain
+ * Protocol: https://docs.cdp.coinbase.com/x402/core-concepts/how-it-works#payment-flow
  */
 const viemClient = createWalletClient({
   account: evmAccount,
@@ -42,8 +43,10 @@ const viemClient = createWalletClient({
   transport: http("https://sepolia-rollup.arbitrum.io/rpc"),
 }).extend(publicActions);
 
-// Initialize the x402 Facilitator with EVM support
+// The bazaar is a visibility layer so sellers can publicly show their endpoints
+const bazaarCatalog = new BazaarCatalog()
 
+// Initialize the x402 Facilitator with EVM support
 const evmSigner = toFacilitatorEvmSigner({
   getCode: (args: { address: `0x${string}` }) => viemClient.getCode(args),
   address: evmAccount.address,
@@ -82,24 +85,18 @@ const evmSigner = toFacilitatorEvmSigner({
 });
 
 /**
- * All the trailing functions are just for console 
- * logging the steps of facilitating a transaction 
+ * There are multiple hooks for the lifecycle of a transaction, the facilitator can index a resource
+ * during any step 
  */
 const facilitator = new x402Facilitator()
-  .onBeforeVerify(async (context) => {
-    console.log("Before verify", context);
-  })
   .onAfterVerify(async (context) => {
-    console.log("After verify", context);
+    bazaarCatalog.extractAndAddDiscoveredResource(
+      context.paymentPayload,
+      context.requirements
+    )
   })
   .onVerifyFailure(async (context) => {
     console.log("Verify failure", context);
-  })
-  .onBeforeSettle(async (context) => {
-    console.log("Before settle", context);
-  })
-  .onAfterSettle(async (context) => {
-    console.log("After settle", context);
   })
   .onSettleFailure(async (context) => {
     console.log("Settle failure", context);
@@ -110,6 +107,7 @@ facilitator.register(
   "eip155:421614",
   new ExactEvmScheme(evmSigner, { deployERC4337WithEIP6492: true }),
 ); // Arb Sepolia
+
 
 // Initialize Express app
 const app = express();
@@ -215,8 +213,39 @@ app.get("/supported", async (req, res) => {
   }
 });
 
+
+/**
+ * GET /discovery/resources
+ * returns all entries of the bazaar
+ */
+app.get("/discovery/resources", async (req, res) => {
+  try {
+    const resources = bazaarCatalog.getAll();
+    res.json({
+      x402Version: 2,
+      items: resources,
+      pagination: {
+        limit: 100,
+        offset: 0,
+        total: resources.length,
+      },
+    });
+  } catch (error) {
+    console.error("Discovery error:", error);
+    res.status(500).json({
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
+
+app.get("/health", (req, res): void => {
+  res.json({status: "ok"})
+})
+
 // Start the server
 app.listen(parseInt(PORT), () => {
   console.log(`🚀 Facilitator listening on http://localhost:${PORT}`);
-  console.log();
+  console.log(`Bazaar located at http://localhost:${PORT}/discovery/resources`)
 });
+
+

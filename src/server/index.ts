@@ -3,7 +3,7 @@ import { paymentMiddleware, x402ResourceServer } from "@x402/express";
 import { ExactEvmScheme } from "@x402/evm/exact/server";
 import { HTTPFacilitatorClient } from "@x402/core/server";
 import { config } from "dotenv"
-import { error } from "console";
+import { declareDiscoveryExtension } from "@x402/extensions/bazaar";
 config()
 const app = express();
 
@@ -21,29 +21,45 @@ const facilitatorClient = new HTTPFacilitatorClient({
   url: "http://localhost:4022"
 });
 
+// Registers different servers, only ones we will care abt are of course Arb Sepolia and Arb One
+const resourceServer = new x402ResourceServer(facilitatorClient)
+      .register("eip155:421614", new ExactEvmScheme())
+
 app.use(
   paymentMiddleware(
     {
       "GET /weather": {
-        accepts: [
+        accepts: 
           {
             // There are two major schemes ive seen which are "exact" and "upto"
             // Exact means the server wants exactly the price shown, and upto means
             // They want upto the price shown.
             scheme: "exact",
             // Price is only able to be shown in dollar format if the network your on has a default stablecoin
-            price: "$0.01",
+            price: "$0.001",
             network: "eip155:421614", // Arb Sepolia
             payTo: evmAddress,
-          }
-        ],
+          },
+          extensions: {
+
+            // This is for bazaar visibility, it adds extra info to what the endpoint returns
+            // and is saved in the bazaar, this is NOT shown via the normal endpoint in this case
+            // http://localhost:4021/weather
+            ...declareDiscoveryExtension({
+              //@ts-expect-error (method works but shows err for some reason)
+              method: "GET",
+              output: {
+                example: {
+                  weather: "Rain", temperature: -40
+                }
+              }
+            })
+          },
         description: "Todays weather forecast",
         mimeType: "application/json",
       },
     },
-    // Registers different servers, only ones we will care abt are of course Arb Sepolia and Arb One
-    new x402ResourceServer(facilitatorClient)
-      .register("eip155:421614", new ExactEvmScheme())
+    resourceServer
   ),
 );
 

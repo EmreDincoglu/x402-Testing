@@ -32,9 +32,6 @@ app.use(
             // They want upto the price shown.
             scheme: "exact",
             // Price is only able to be shown in dollar format if the network your on has a default stablecoin
-            // The code making USDC the default for ArbOne and Sep is merged but at time of writing it has not been
-            // Put into an updated NPM package 
-            // This is why the README tells you to edit a file in node_modules
             price: "$0.01",
             network: "eip155:421614", // Arb Sepolia
             payTo: evmAddress,

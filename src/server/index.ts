@@ -3,7 +3,7 @@ import { paymentMiddleware, x402ResourceServer } from "@x402/express";
 import { ExactEvmScheme } from "@x402/evm/exact/server";
 import { HTTPFacilitatorClient } from "@x402/core/server";
 import { config } from "dotenv"
-import { error } from "console";
+import { declareDiscoveryExtension } from "@x402/extensions/bazaar";
 config()
 const app = express();
 
@@ -21,11 +21,15 @@ const facilitatorClient = new HTTPFacilitatorClient({
   url: "http://localhost:4022"
 });
 
+// Registers different servers, only ones we will care abt are of course Arb Sepolia and Arb One
+const resourceServer = new x402ResourceServer(facilitatorClient)
+      .register("eip155:421614", new ExactEvmScheme())
+
 app.use(
   paymentMiddleware(
     {
       "GET /weather": {
-        accepts: [
+        accepts: 
           {
             // There are two major schemes ive seen which are "exact" and "upto"
             // Exact means the server wants exactly the price shown, and upto means
@@ -35,15 +39,23 @@ app.use(
             price: "$0.01",
             network: "eip155:421614", // Arb Sepolia
             payTo: evmAddress,
-          }
-        ],
+          },
+          extensions: {
+            // This is for bazaar visibility
+            ...declareDiscoveryExtension({
+              output: {
+                example: {
+                  weather: "foggy",
+                  temperature: 44
+                }
+              }
+            })
+          },
         description: "Todays weather forecast",
         mimeType: "application/json",
       },
     },
-    // Registers different servers, only ones we will care abt are of course Arb Sepolia and Arb One
-    new x402ResourceServer(facilitatorClient)
-      .register("eip155:421614", new ExactEvmScheme())
+    resourceServer
   ),
 );
 

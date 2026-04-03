@@ -213,6 +213,11 @@ app.get("/supported", async (req, res) => {
   }
 });
 
+
+/**
+ * GET /discovery/resources
+ * returns all entries of the bazaar
+ */
 app.get("/discovery/resources", async (req, res) => {
   try {
     const resources = bazaarCatalog.getAll();
@@ -240,7 +245,7 @@ app.get("/health", (req, res): void => {
 // Start the server
 app.listen(parseInt(PORT), () => {
   console.log(`🚀 Facilitator listening on http://localhost:${PORT}`);
-  console.log();
+  console.log(`Bazaar located at http://localhost:${PORT}/discovery/resources`)
 });
 
 

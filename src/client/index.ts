@@ -30,6 +30,12 @@ async function main() {
       (name) => response.headers.get(name)
     );
     console.log("Payment settled:", paymentResponse);
+    if (paymentResponse.network == `eip155:42161`) {
+      console.log(`ArbiScan Link: https://arbiscan.io/tx/${paymentResponse.transaction}` )
+    }
+    else if (paymentResponse.network == `eip155:421614`) {
+      console.log(`ArbiScan Link: https://sepolia.arbiscan.io/tx/${paymentResponse.transaction}` )
+    }
   }
 }
 

@@ -13,10 +13,11 @@ registerExactEvmScheme(client, { signer });
 // Wrap fetch with payment handling
 const fetchWithPayment = wrapFetchWithPayment(fetch, client);
 
-async function main() {
+
+async function requestAndPay(endpoint: string) {
   // Make request - payment is handled automatically
   // An AI agent would only have to set the endpoint below to buy the resource
-  const response = await fetchWithPayment("http://localhost:4021/weather", {
+  const response = await fetchWithPayment(endpoint, {
     method: "GET",
   });
   
@@ -36,6 +37,13 @@ async function main() {
     else if (paymentResponse.network == `eip155:421614`) {
       console.log(`ArbiScan Link: https://sepolia.arbiscan.io/tx/${paymentResponse.transaction}` )
     }
+  }
+}
+
+const endpoints = ["date", "weather"];
+async function main() {
+  for (var e in endpoints) {
+    await requestAndPay(`http://localhost:4021/${endpoints[e]}`)
   }
 }
 

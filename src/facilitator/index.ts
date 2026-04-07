@@ -13,7 +13,6 @@ import { createWalletClient, http, publicActions } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { arbitrumSepolia } from "viem/chains";
 import { BazaarCatalog } from "./bazaarCatalog";
-import { ok } from "assert";
 
 dotenv.config();
 
@@ -44,7 +43,7 @@ const viemClient = createWalletClient({
 }).extend(publicActions);
 
 // The bazaar is a visibility layer so sellers can publicly show their endpoints
-const bazaarCatalog = new BazaarCatalog()
+const bazaarCatalog = new BazaarCatalog("bazaarEntries.db")
 
 // Initialize the x402 Facilitator with EVM support
 const evmSigner = toFacilitatorEvmSigner({
